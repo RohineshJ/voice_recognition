@@ -1,17 +1,17 @@
 import os
 import numpy as np
-import sounddevice as sd
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_from_directory
 from scipy.io.wavfile import write
 from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import pickle
-import pyttsx3
 import librosa
 from config import get_connection
 from csv_logger import log_to_csv
+from gtts import gTTS
 
-app = Flask(__name__)
+app = Flask(_name_)
+app.config['UPLOAD_FOLDER'] = 'recordings'
 
 RECORDINGS_DIR = 'recordings'
 MODEL_PATH = 'model/model.pkl'
@@ -21,15 +21,13 @@ DURATION = 5
 os.makedirs(RECORDINGS_DIR, exist_ok=True)
 os.makedirs('model', exist_ok=True)
 
-# Speak
-def speak(text):
-    engine = pyttsx3.init()
-    for voice in engine.getProperty('voices'):
-        if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
-            engine.setProperty('voice', voice.id)
-            break
-    engine.say(text)
-    engine.runAndWait()
+# Speak with gTTS
+def speak(text, filename="speak.mp3"):
+    tts = gTTS(text)
+    path = os.path.join("static", filename)
+    os.makedirs("static", exist_ok=True)
+    tts.save(path)
+    return f"/static/{filename}"
 
 # Extract MFCC
 def extract_features(filepath):
@@ -80,20 +78,17 @@ def register():
     if request.method == 'POST':
         name = request.form['name']
         user_id = request.form['user_id']
+        files = request.files.getlist('audio_file')
+
         user_folder = os.path.join(RECORDINGS_DIR, f"{name}_{user_id}")
         os.makedirs(user_folder, exist_ok=True)
 
         file_paths = []
-        for i in range(1, 6):  # Generate 5 samples
-            filename = f"{name}_{user_id}_{i}.wav"
-            filepath = os.path.join(user_folder, filename)
-
-            print(f"🎤 Recording sample {i}...")
-            recording = sd.rec(int(DURATION * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1)
-            sd.wait()
-            recording_int16 = np.int16(recording * 32767)
-            write(filepath, SAMPLE_RATE, recording_int16)
-            file_paths.append(filepath)
+        for i, file in enumerate(files):
+            filename = f"{name}{user_id}{i+1}.wav"
+            path = os.path.join(user_folder, filename)
+            file.save(path)
+            file_paths.append(path)
 
         # Save to DB & CSV
         conn = get_connection()
@@ -106,27 +101,24 @@ def register():
         conn.close()
 
         train_model()
-        return render_template('register.html', success=True)
+        speak_path = speak("User registered successfully")
+        return render_template('register.html', success=True, speak_path=speak_path)
 
     return render_template('register.html', success=False)
 
 @app.route('/recognize', methods=['GET', 'POST'])
 def recognize():
     name, user_id = '', ''
+    speak_path = ''
 
     if request.method == 'POST':
-        filename = 'input_test.wav'
-        filepath = os.path.join(RECORDINGS_DIR, filename)
-
-        print("🎤 Recording for recognition...")
-        recording = sd.rec(int(DURATION * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1)
-        sd.wait()
-        recording_int16 = np.int16(recording * 32767)
-        write(filepath, SAMPLE_RATE, recording_int16)
+        file = request.files['audio_file']
+        filepath = os.path.join(RECORDINGS_DIR, file.filename)
+        file.save(filepath)
 
         if not os.path.exists(MODEL_PATH):
-            speak("Model not trained yet")
-            return render_template('recognize.html', name='', user_id='')
+            speak_path = speak("Model not trained yet")
+            return render_template('recognize.html', name='', user_id='', speak_path=speak_path)
 
         try:
             with open(MODEL_PATH, 'rb') as f:
@@ -138,20 +130,22 @@ def recognize():
             predicted_label = le.inverse_transform(prediction)[0]
         except Exception as e:
             print("Prediction error:", e)
-            speak("Recognition failed")
-            return render_template('recognize.html', name='', user_id='')
+            speak_path = speak("Recognition failed")
+            return render_template('recognize.html', name='', user_id='', speak_path=speak_path)
 
         parts = predicted_label.split('_')
         if len(parts) >= 2:
             name, user_id = parts[0], parts[1]
 
         if name and user_id:
-            speak(f"The user is {name}, with ID {user_id}")
+            message = f"The user is {name}, with ID {user_id}"
             log_to_csv(name, user_id, 'recognize')
         else:
-            speak("User not recognized")
+            message = "User not recognized"
 
-    return render_template('recognize.html', name=name, user_id=user_id)
+        speak_path = speak(message)
 
-if __name__ == '__main__':
+    return render_template('recognize.html', name=name, user_id=user_id, speak_path=speak_path)
+
+if _name_ == '_main_':
     app.run(debug=True)
