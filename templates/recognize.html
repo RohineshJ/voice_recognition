@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recognize Voice</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3d5e6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      animation: fadeIn 0.5s ease-in-out;
+      position: relative;
+    }
+
+    h2 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      max-width: 250px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .recording-indicator {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #e63946;
+      display: none;
+      font-size: 16px;
+    }
+
+    .result {
+      margin-top: 20px;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .footer-text {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #555;
+      opacity: 0.85;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🔍 Recognize Voice</h2>
+
+    <form method="POST" onsubmit="showRecording();">
+      <button type="submit">Start Recognition</button>
+    </form>
+
+    <div id="recordingIndicator" class="recording-indicator">
+      🎙️ Recording in progress... Please speak now
+    </div>
+
+    {% if name %}
+      <div class="result">
+        <p><strong>👤 Name:</strong> {{ name }}</p>
+        <p><strong>🆔 User ID:</strong> {{ user_id }}</p>
+      </div>
+    {% endif %}
+
+    <div class="footer-text" id="footerText"></div>
+
+    <a class="back-link" href="/">⬅️ Back to Home</a>
+  </div>
+
+  <script>
+    function showRecording() {
+      document.getElementById("recordingIndicator").style.display = "block";
+    }
+
+    // Simple English sentences
+    const sentences = [
+      "My name is John and I love learning new things.\nVoice technology is really amazing.",
+      "Today is a good day to try something new.\nLet me see if this system can hear me clearly.",
+      "Hello, I am testing this voice system.\nI hope it recognizes my voice without error.",
+      "The sun is shining and the sky is blue.\nI’m speaking to test the voice recognition.",
+      "Please listen carefully to my voice sample.\nI hope the system works correctly today.",
+      "My voice is unique and helps identify me.\nI speak clearly to make it easier to learn.",
+      "Welcome to this voice-based project demo.\nLet’s check if it identifies who I am.",
+      "Sometimes, technology feels like magic.\nThis system can recognize who is talking!",
+      "I’m happy to help train this voice model.\nLet’s see how well it can understand me.",
+      "It’s a great day to try something cool.\nI hope my voice sounds clear and smooth.",
+      "Machines are learning to understand people.\nI find that really interesting and fun.",
+      "Voice is a powerful way to connect.\nLet’s test how well this system works.",
+      "My voice is the key to who I am.\nTechnology can now tell us apart.",
+      "Say something meaningful and clear.\nLet the machine hear your natural tone.",
+      "Testing is an important part of building.\nThis helps the system become smarter.",
+      "Speaking is easier than typing sometimes.\nLet’s use our voice to control things.",
+      "The computer is listening to my words.\nI hope it remembers my voice pattern.",
+      "We are teaching machines to listen better.\nThis is a small step toward smart tools."
+
+    ];
+
+    // Pick one at random
+    const random = sentences[Math.floor(Math.random() * sentences.length)];
+    document.getElementById("footerText").innerText = random;
+  </script>
+</body>
+</html>
