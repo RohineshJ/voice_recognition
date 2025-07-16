@@ -87,21 +87,30 @@
 </head>
 <body>
   <div class="card">
-    <h2>🎙️ Register New User</h2>
+    <h2>🎙 Register New User</h2>
+
     {% if success %}
       <p class="success">✅ User registered successfully!</p>
+      {% if speak_path %}
+        <audio controls autoplay>
+          <source src="{{ speak_path }}" type="audio/mpeg">
+        </audio>
+      {% endif %}
     {% endif %}
-    <form method="POST" onsubmit="showRecording();">
-      <input type="text" name="name" placeholder="Enter your name" required><br>
-      <input type="text" name="user_id" placeholder="Enter your ID" required><br>
-      <button type="submit">Register & Record</button>
+
+    <form method="POST" enctype="multipart/form-data" onsubmit="showRecording();">
+      <input type="text" name="name" placeholder="Enter your name" required><br><br>
+      <input type="text" name="user_id" placeholder="Enter your ID" required><br><br>
+      <label>Upload 5 audio samples (.wav files):</label><br>
+      <input type="file" name="audio_file" accept=".wav" multiple required><br><br>
+      <button type="submit">Register</button>
     </form>
 
-    <div id="recordingIndicator" class="recording-indicator">
-      🎤 Recording in progress... Please speak now
+    <div id="recordingIndicator" class="recording-indicator" style="display:none; margin-top:10px;">
+      🎤 Uploading voice samples... Please wait
     </div>
 
-    <a class="back-link" href="/">⬅️ Back to Home</a>
+    <a class="back-link" href="/">⬅ Back to Home</a>
   </div>
 
   <script>
