@@ -90,12 +90,14 @@
   <div class="card">
     <h2>🔍 Recognize Voice</h2>
 
-    <form method="POST" onsubmit="showRecording();">
+    <form method="POST" enctype="multipart/form-data" onsubmit="showRecording();">
+      <label>Select a voice sample (.wav):</label><br>
+      <input type="file" name="audio_file" accept=".wav" required><br><br>
       <button type="submit">Start Recognition</button>
     </form>
 
-    <div id="recordingIndicator" class="recording-indicator">
-      🎙️ Recording in progress... Please speak now
+    <div id="recordingIndicator" class="recording-indicator" style="display: none;">
+      🎙 Uploading voice sample... Please wait
     </div>
 
     {% if name %}
@@ -105,9 +107,14 @@
       </div>
     {% endif %}
 
-    <div class="footer-text" id="footerText"></div>
+    {% if speak_path %}
+      <audio controls autoplay>
+        <source src="{{ speak_path }}" type="audio/mpeg">
+      </audio>
+    {% endif %}
 
-    <a class="back-link" href="/">⬅️ Back to Home</a>
+    <div class="footer-text" id="footerText"></div>
+    <a class="back-link" href="/">⬅ Back to Home</a>
   </div>
 
   <script>
@@ -135,12 +142,9 @@
       "Speaking is easier than typing sometimes.\nLet’s use our voice to control things.",
       "The computer is listening to my words.\nI hope it remembers my voice pattern.",
       "We are teaching machines to listen better.\nThis is a small step toward smart tools."
-
     ];
 
-    // Pick one at random
-    const random = sentences[Math.floor(Math.random() * sentences.length)];
-    document.getElementById("footerText").innerText = random;
+    document.getElementById("footerText").innerText = sentences[Math.floor(Math.random() * sentences.length)];
   </script>
 </body>
 </html>
